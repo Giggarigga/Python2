@@ -2,11 +2,12 @@ import os
 import discord
 from discord.ext import commands
 from discord import app_commands
+from dotenv import load_dotenv
 
-# Get the token from .env
+# Load environment variables from .env
+load_dotenv()
 TOKEN = os.getenv("DISCORD_TOKEN")
 
-# Stop the bot if no token is found
 if not TOKEN:
     print("No token found in environment variables.")
     exit()
@@ -16,7 +17,6 @@ intents.message_content = True
 intents.members = True
 
 bot = commands.Bot(command_prefix='/', intents=intents)
-
 absence_data = {}
 
 @bot.event
@@ -46,7 +46,7 @@ async def on_message(message):
     if message.author.bot:
         return
 
-    # If an absent user is pinged
+    # Check if any absent user is pinged
     for user_id, data in absence_data.items():
         if f"<@{user_id}>" in message.content or f"<@!{user_id}>" in message.content:
             user = await bot.fetch_user(user_id)
@@ -55,7 +55,7 @@ async def on_message(message):
             )
             break
 
-    # If the absent user sends a message
+    # Auto-remove absence if the absent user sends a message
     if message.author.id in absence_data:
         del absence_data[message.author.id]
         msg = await message.channel.send(
@@ -65,5 +65,4 @@ async def on_message(message):
 
     await bot.process_commands(message)
 
-# Run the bot
-bot.run(DISCORD_TOKEN)
+bot.run(TOKEN)
